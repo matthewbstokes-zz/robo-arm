@@ -15,6 +15,7 @@
     - Subscribe dsr_joint angles
   
 # TODO
+  - WiFi communication
   - PID controller
   - ROS forward kinematics (DH) parameters
   - ROS inverse kinemtaics
