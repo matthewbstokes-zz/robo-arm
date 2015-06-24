@@ -1,3 +1,15 @@
+// from LWR
+  // Just for fun draw a file containing ASCII characters
+  int DrawASCIIPhoto(std::string path_to_ascii_file = "",
+    double speed_percent = 100.0);
+
+// from utils
+namespace AsciiArt {
+  int Generate2DVectorFromASCIIFile(std::string ascii_file,
+    std::vector<std::vector<char>>& ascii_img,
+    std::unordered_map<char, std::string> character_set,
+    std::vector<char>& char_appearance);
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 ////                                ASCII                                  ////
