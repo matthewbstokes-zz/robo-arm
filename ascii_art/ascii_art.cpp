@@ -1,3 +1,11 @@
+// from execute.cpp
+void DrawASCII(LWR& lwr) {
+  string ascii_filename;
+  fprintf(stdout, "What ASCII photo would you like me to draw?\n> ");
+  cin >> ascii_filename;
+  lwr.DrawASCIIPhoto(ASCII_PATH + ascii_filename + TXT);
+}
+
 // from LWR
   // Just for fun draw a file containing ASCII characters
   int DrawASCIIPhoto(std::string path_to_ascii_file = "",
