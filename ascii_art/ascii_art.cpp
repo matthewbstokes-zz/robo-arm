@@ -19,6 +19,35 @@ namespace AsciiArt {
     std::vector<char>& char_appearance);
 };
 
+namespace AsciiArt {
+  int Generate2DVectorFromASCIIFile(string ascii_file,
+    vector<vector<char>>& ascii_img,
+    unordered_map<char, string> character_set,
+    vector<char>& char_appearance) {
+
+    ifstream ss_ascii_file(ascii_file);
+    if (!ss_ascii_file.is_open()) {
+      printf("Unable to open ASCII file");
+      return ERROR_FILE_NOT_FOUND;
+    }
+
+    string line;
+    int row = 0;
+    while (getline(ss_ascii_file, line)) {
+      ascii_img.push_back(vector<char>());  // row vector columns set to line size
+      for (unsigned int i = 0; i<line.length(); i++) {
+        ascii_img[row].push_back(line.at(i));  // set character
+        if (character_set.erase(line[i]) == 1) {  // just removed from map
+          char_appearance.push_back(line.at(i));
+        }
+      }
+      row++;
+    }
+    return SUCCESS;
+  }
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 ////                                ASCII                                  ////
 ///////////////////////////////////////////////////////////////////////////////
