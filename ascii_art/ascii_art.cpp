@@ -47,7 +47,93 @@ namespace AsciiArt {
   }
 }
 
+  //Header Size : 10
+  //Name : STANDARDIZED $
+  //Date : Wed Feb 25 13 : 06 : 39 2015
+  //Coordinate System : Global Coordinate System
+  //Character Dimensions : 3  6
+  //TCP Rotation Matrix : 1 1 1 1 1 1 1 1 1
+  //Column Fields : CartesianPosition
+  //Column Element Size : 3
+  //Entries : 13860
+  // starts on top left corner of square which is 0,0
+  int MotionParser::ConvertMotionRecordLogToStandardizedCharLog() {
+    int header_size = 8;
 
+    header_.Parse(&if_stream_);
+    header_.WriteHeader(of_stream_, HEADER_SIZE, std::to_string(header_size));
+    header_.WriteHeader(of_stream_, NAME, header_.GetHeaderName());
+    header_.WriteHeader(of_stream_, LOG_DATE, header_.GetDate());
+    header_.WriteHeader(of_stream_, COORDINATE_SYSTEM, "Global Coordinate System");
+    header_.WriteHeader(of_stream_, CHARACTER_DIMENSIONS, "3\t6");
+    header_.WriteHeader(of_stream_, CARTESIAN_ROTATION_MATRIX, "0\t0\t-1\t0\t1\t0\t1\t0\t0");
+    header_.WriteHeader(of_stream_, COLUMN_FIELDS, "CartesianPosition");
+    header_.WriteHeader(of_stream_, COLUMN_ELEMENT_SIZE, "3");
+
+    // loop over cart_path and output only displacement elements 3,7,11
+    vector<vector<float>> cart_path;
+    ParseMotion(NULL, &cart_path);
+
+    // get first element for "zero point"
+    float start_x = cart_path[0][3];
+    float start_y = cart_path[0][7];
+    float start_z = cart_path[0][11];
+
+    // store buffer size 1 to compare current value against.
+    // if no x,y,z movement don't include (who cares about rotation)
+    float prev_position[3] = { start_x, start_y, start_z };
+    int entries_count = 0;
+    vector<vector<float>> out;
+    out.reserve(20000);
+    out.push_back({ 0, 0, 0 });
+
+    for (auto pose : cart_path) {
+      if (abs(pose[3] - prev_position[0]) > 0.00001 ||
+        abs(pose[7] - prev_position[1]) > 0.00001 ||
+        abs(pose[11] - prev_position[2]) > 0.00001) {
+
+        // set prev position to this position
+        prev_position[0] = pose[3];
+        prev_position[1] = pose[7];
+        prev_position[2] = pose[11];
+
+        // output value
+        out.push_back({ pose[3] - start_x, pose[7] - start_y, pose[11] - start_z });
+
+        entries_count++;
+      }
+    }
+    header_.WriteHeader(of_stream_, ENTRIES, std::to_string(entries_count));
+    for (unsigned int i = 0; i < out.size(); i++) {
+      of_stream_ << std::fixed << std::setprecision(6) << out[i][0] << "\t" << out[i][1] << "\t" << out[i][2] << "\n";
+    }
+
+    return SUCCESS;
+  }
+
+    int MotionParser::ReadStandardizedCharacterPath(
+    std::ifstream* char_file, vector<vector<float>>& char_path) {
+    if (char_file == NULL || !char_file->is_open()) {
+      printf("Unable to open input file");
+      return ERROR_FILE_DOES_NOT_EXIST;
+    }
+
+    HeaderInfo::Header header;
+    int header_size = header.GetHeaderSize(char_file);
+
+    // ignore header lines
+    string line;
+    for (int i = 0; i <= header_size; ++i) {
+      getline(*char_file, line);
+    }
+
+    // push data into char_path
+    float x, y, z;
+    while (*char_file >> x >> y >> z) {
+      char_path.push_back({ x, y, z });
+    }
+    return SUCCESS;
+  }
 ///////////////////////////////////////////////////////////////////////////////
 ////                                ASCII                                  ////
 ///////////////////////////////////////////////////////////////////////////////
